@@ -54,10 +54,10 @@ class Random(Player):
 
 
 class Network(Player):
-    def __init__(self, n, s, e, print_mode):
+    def __init__(self, n, s, e, print_mode, model='policy_net_v1'):
         super().__init__(n, s, e, print_mode)
-        save_meta_path = os.path.join('models', 'policy_net_v1.meta')
-        save_ckpt_path = os.path.join('models', 'policy_net_v1')
+        save_meta_path = os.path.join('models', model, model + '.meta')
+        save_ckpt_path = os.path.join('models', model, model)
         # saver.restore(sess, save_path)
 
         self.saver = tf.train.import_meta_graph(save_meta_path)

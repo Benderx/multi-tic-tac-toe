@@ -26,7 +26,7 @@ def collab(p1, p2):
 
 def main():
     size = 3
-    path = os.path.join('data', 'random', '3', 'mytestfile11.hdf5')
+    path = os.path.join('data', 'random', '3', 'mytestfile0.hdf5')
 
     total = 0
     with h5py.File(path, 'r') as f:
@@ -38,42 +38,45 @@ def main():
 
         game = 0
         move_counter = 0
-        for move in f['random_games']:
+        for state in f['random_games']:
             if move_counter == 0:
-                if move[0][0] == 0:
+                if state[0] == 0:
                     print('reached end')
                     break
-                game_len = move[0][0]
-                if move[0][1] == 1:
+                game_len = state[2]
+                if state[1] == 1:
                     p1 += 1
 
             # Board stuff
-            for j in range(move[0][2]):
-                print(move[j][0])
-                print(move[j][1])
-                print(move[j][2])
+            # print(state[0])
+            # print(state[1])
+            # print(state[2])
 
-                move_color = move[j][0]
-                move_winner= move[j][1]
+            # move_color = state[0]
+            # move_winner= state[1]
 
-                board_p1 = move[j][3:3+9]
-                board_p2 = move[j][12:12+9]
+            # board_p1 = state[3:3+9]
+            # board_p2 = state[12:12+9]
 
-                move_chosen = move[j][21:21+9]
+            # move_chosen = state[21:21+9]
 
-                print(board_p1)
-                print(board_p2)
-                print(move_chosen)
+            # print(board_p1)
+            # print(board_p2)
+            # print(move_chosen)
 
-                full_b = collab(board_p1, board_p2)
-                for i in range(3):
-                    print(full_b[i*3:i*3+3])
-                print()
+            # full_b = collab(board_p1, board_p2)
+            # for i in range(3):
+            #     print(full_b[i*3:i*3+3])
+            # print(game_len, move_counter)
+
+            # print()
+
 
             move_counter += 1
             if move_counter == game_len:
                 move_counter = 0
                 game += 1
+                # exit()
             total += 1
 
         print('itered {0} moves'.format(total))

@@ -10,7 +10,6 @@ def play_game(size, print_mode):
     p1 = Random(1, size*size, e, print_mode)
     p2 = Random(2, size*size, e, print_mode)
     curr = p1
-    total_size = 2 + size
     curr_state = 0
     total_squares = size*size
 
@@ -106,9 +105,9 @@ def main():
     # game_num = 0
 
     # BASED ON MOVES, WILL BE APPROXIMATE
-    moves = 10000000
+    moves = 1000000
     with h5py.File(path, 'w') as f:
-        dset = f.create_dataset('random_games', shape=(moves, total_squares, 3+(total_squares*3)), dtype=np.int8)
+        dset = f.create_dataset('random_games', shape=(moves, 3+(total_squares*3)), dtype=np.int8)
 
         while i < moves:
             winner, game, move_len = play_game(size, 0)
@@ -126,7 +125,9 @@ def main():
             for state in trunced_game:
                 state[1] = winner
                 dset[i] = state
+                # print(dset[i], i, move_len)
                 i += 1
+
 
     # BASED ON GAMES
     # games = 5000000

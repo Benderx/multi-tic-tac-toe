@@ -4,6 +4,7 @@ import os
 import h5py
 import random
 import numpy as np
+import math
 
 # Parameters
 learning_rate = 0.001
@@ -39,15 +40,21 @@ def multilayer_perceptron(x, weights, biases):
 
 # Store layers weight & bias
 # initialized via http://cs231n.github.io/neural-networks-2/
+
+h1_weight = np.random.randn(n_input, n_hidden_1) / math.sqrt(2.0/(n_input))
+h2_weight = np.random.randn(n_hidden_1, n_hidden_2) / math.sqrt(2.0/(n_hidden_1))
+out_weight = np.random.randn(n_hidden_2, n_classes) / math.sqrt(2.0/(n_hidden_2))
+
+
 weights = {
-    'h1': tf.Variable(np.random.randn(n) * sqrt(2.0/(n_input+n_hidden_1))),
-    'h2': tf.Variable(np.random.randn(n) * sqrt(2.0/(n_hidden_1+n_hidden_2))),
-    'out': tf.Variable(np.random.randn(n) * sqrt(2.0/(n_hidden_2+n_classes)))
+    'h1': tf.Variable(h1_weight, dtype=np.float32),
+    'h2': tf.Variable(h2_weight, dtype=np.float32),
+    'out': tf.Variable(out_weight, dtype=np.float32)
 }
 biases = {
-    'b1': tf.Variable(tf.constant(shape=(n_hidden_1), value=.01)),
-    'b2': tf.Variable(tf.constant(shape=(n_hidden_2), value=.01)),
-    'out': tf.Variable(tf.constant(shape=(n_classes), value=.01))
+    'b1': tf.Variable(tf.constant(.01, shape=(n_hidden_1,))),
+    'b2': tf.Variable(tf.constant(.01, shape=(n_hidden_2,))),
+    'out': tf.Variable(tf.constant(.01, shape=(n_classes,)))
 }
 
 # Construct model
@@ -68,47 +75,36 @@ saver = tf.train.Saver()
 
 
 def random_state_gen(f, random_sample):
-    for game_id in random_sample:
-        upper = 4
+    for move_id in random_sample:
+        state = f['random_games'][move_id]
         winner = 1
-        game = f['random_games'][game_id]
-
-        # print(game)
-
-        if game[0][1] == 2:
+        if state[1] == 2:
             winner = 2
 
-        game_len = game[0][2]//2
-
-        # print(game_len)
+        game_len = state[2]
 
         if winner == 1:
-            while True:
-                r = random.randint(0, game_len)
-                state = game[r*2]
-                yield state[12:21], state[3:12], state[21:]
-                break
+            yield state[12:21], state[3:12], state[21:]
         else:
-            while True:
-                r = random.randint(0, game_len-1)
-                state = game[r*2 + 1]
-                yield state[3:12], state[12:21], state[21:]
-                break
+            yield state[3:12], state[12:21], state[21:]
     yield 'over', None, None
 
 
 
 def get_last(f, def_shape):
+    def_shape -= 1
+    if f['random_games'][def_shape][0] != 0:
+        return def_shape
     while def_shape >= 0:
-        if d[def_shape][0][0] == 0:
-            return def_shape
+        if f['random_games'][def_shape][0] != 0:
+            return def_shape + 1
         def_shape -= 1
 
 
 
 def get_batch(batch_size):
     size = 3
-    path = os.path.join('data', 'random', str(size), 'mytestfile0.hdf5')
+    path = os.path.join('data', 'random', str(size), 'mytestfile1.hdf5')
 
     with h5py.File(path, 'r') as f:
         moves_len = f['random_games'].shape[0]
@@ -116,10 +112,11 @@ def get_batch(batch_size):
         last_move_index = get_last(f, moves_len)
         print(last_move_index)
 
-        games_range_gen = range(games_len)
-        random_sample = random.sample(games_range_gen, games_len)
 
-        print('training from {0} games'.format(games_len))
+        games_range_gen = range(last_move_index+1)
+        random_sample = random.sample(games_range_gen, last_move_index)
+
+        print('training from {0} games'.format(last_move_index))
 
         state_gen = random_state_gen(f, random_sample)
         while True:
@@ -131,7 +128,7 @@ def get_batch(batch_size):
                 x1ret, x2ret, yret = next(state_gen)
                 # print('x1ret', x1ret)
                 if x1ret == 'over':
-                    print('finished {0} states, this batch only has {1}/{2} states'.format(games_len, i, batch_size))
+                    print('finished {0} states, this batch only has {1}/{2} states'.format(last_move_index+1, i, batch_size))
                     state_gen = random_state_gen(f, random_sample)
                     break
 
@@ -158,7 +155,7 @@ with tf.Session() as sess:
     # Training cycle
     for epoch in range(training_epochs):
         avg_cost = 0.
-        batches = 50000
+        batches = 40000
 
         # Loop over all batches
         for i in range(batches):
