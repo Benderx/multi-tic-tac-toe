@@ -54,10 +54,19 @@ class Random(Player):
 
 
 class Network(Player):
-    def __init__(self, n, s, e, print_mode, model='policy_net_v1'):
+    def __init__(self, n, s, e, print_mode, model='policy_net_v2', iteration = float('inf')):
         super().__init__(n, s, e, print_mode)
-        save_meta_path = os.path.join('models', model, model + '.meta')
-        save_ckpt_path = os.path.join('models', model, model)
+
+        model_path = os.path.join('models', model)
+        if iteration == float('inf'):
+            models = os.listdir(model_path)
+            last_iter = len(models) - 1
+            model_path = os.path.join(model_path, str(last_iter))
+        else:
+            model_path = os.path.join(model_path, iteration)
+
+        save_meta_path = os.path.join(model_path, 'ITSYABOI.meta')
+        save_ckpt_path = os.path.join(model_path, 'ITSYABOI')
         # saver.restore(sess, save_path)
 
         self.saver = tf.train.import_meta_graph(save_meta_path)

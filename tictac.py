@@ -1,14 +1,22 @@
 from engine import Engine
 from players import Human, Random, Network
+import random
 
 
-def play_game(size, print_mode = 1):
+def play_game(size, rand_start, print_mode = 1):
 	e = Engine(size, print_mode)
 	p1 = Network(1, size*size, e, print_mode)
 	p2 = Random(2, size*size, e, print_mode)
-	curr = p1
+	
+	player_arr = [p1, p2]
+	if rand_start == True:
+		player_index = random.randint(0, 1)
+	else:
+		player_index = 0
 
 	while True:
+		curr = player_arr[player_index]
+
 		e.print_board()
 		moves = e.get_legal_moves()
 		t = e.is_terminal(moves)
@@ -18,10 +26,8 @@ def play_game(size, print_mode = 1):
 		curr.print_turn()
 		m = curr.get_move(moves)
 		e.move(m, curr.get_sym())
-		if curr == p1:
-			curr = p2
-		else:
-			curr = p1
+
+		player_index = 1 - player_index
 
 
 def main():
@@ -29,7 +35,7 @@ def main():
 	p1 = 0
 	p2 = 0
 	for i in range(50):
-		winner = play_game(3, 0)
+		winner = play_game(3, True, 1)
 		if winner == 0:
 			print("DRAW")
 			draw += 1

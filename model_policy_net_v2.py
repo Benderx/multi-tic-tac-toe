@@ -87,6 +87,7 @@ def random_state_gen(f, random_sample):
         if state[1] == 2:
             winner = 2
 
+        move_color = state[0]
         game_len = state[2]
 
         if winner == 1:
@@ -110,7 +111,7 @@ def get_last(f, def_shape):
 
 def get_batch(batch_size):
     size = 3
-    path = os.path.join('data', 'random', str(size), 'mytestfile1.hdf5')
+    path = os.path.join('data', 'random', str(size), 'mytestfile0.hdf5')
 
     with h5py.File(path, 'r') as f:
         moves_len = f['random_games'].shape[0]
@@ -155,7 +156,7 @@ print(model_num)
 model_path = os.path.join(all_models_path, '{0}'.format(str(model_num)))
 
 
-time_seconds = 180
+time_seconds = 1000
 global lmao; lmao = True
 def training_time_up():
     global lmao;
