@@ -14,6 +14,8 @@ def play_game(size, rand_start, print_mode = 1):
 	else:
 		player_index = 0
 
+	print(player_index, e.get_board())
+	exit()
 	while True:
 		curr = player_arr[player_index]
 

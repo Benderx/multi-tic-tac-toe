@@ -2,12 +2,19 @@ import random
 import numpy as np
 
 class Engine:
-    def __init__(self, n, print_mode):
+    def __init__(self, n, print_mode, start_state = None):
         self.n = n
         self.board = np.zeros(shape=(9), dtype=int)
         self.track_curr = 0
         self.track = np.zeros(shape=(9), dtype=int)
         self.print_mode = print_mode
+        if start_state != None:
+            self.init_board(start_state)
+
+
+    def init_board(start_state):
+        for i in range(len(board)):
+            self.board[i] = start_state[i]
 
 
     def print_board(self):

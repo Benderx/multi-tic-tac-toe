@@ -5,8 +5,8 @@ import numpy as np
 import os
 
 
-def play_game(size, random_start, print_mode):
-    e = Engine(size, print_mode)
+def play_game(size, random_start, start_state, print_mode):
+    e = Engine(size, print_mode, start_state)
     p1 = Neural(1, size*size, e, print_mode, 'latest')
     p2 = Neural(2, size*size, e, print_mode, 'older_model')
     curr = p1
@@ -71,6 +71,17 @@ def play_game(size, random_start, print_mode):
 
 
 
+def spread_to_combined(b1, b2):
+    arr = []
+    for index in range(b1):
+        if b1[index] == 1:
+            arr.append(1)
+        elif b2[index] == 1:
+            arr.append(2)
+        else:
+            arr.append(0)
+    return arr
+
 
 def random_state_gen(f, random_sample):
     for move_id in random_sample:
@@ -79,13 +90,13 @@ def random_state_gen(f, random_sample):
         if state[1] == 2:
             winner = 2
 
+        move_color = state[0]
         game_len = state[2]
 
-        if winner == 1:
-            yield state[12:21], state[3:12], state[21:]
-        else:
-            yield state[3:12], state[12:21], state[21:]
-    yield 'over', None, None
+        p1_board = state[3:12]
+        p2_board = state[12:21]
+        yield spread_to_combined(p1_board, p2_board)
+    yield None
 
 
 
@@ -105,10 +116,7 @@ def gen_start_states():
 
     with h5py.File(path, 'r') as f:
         moves_len = f['random_games'].shape[0]
-
         last_move_index = get_last(f, moves_len)
-        print(last_move_index)
-
 
         games_range_gen = range(last_move_index+1)
         random_sample = random.sample(games_range_gen, last_move_index)
@@ -117,25 +125,13 @@ def gen_start_states():
 
         state_gen = random_state_gen(f, random_sample)
         while True:
-            i = 0
-            xarr = []
-            yarr = []
+            board_state = next(state_gen)
 
-            while i < batch_size:
-                x1ret, x2ret, yret = next(state_gen)
-                # print('x1ret', x1ret)
-                if x1ret == 'over':
-                    print('finished {0} states, this batch only has {1}/{2} states'.format(last_move_index+1, i, batch_size))
-                    state_gen = random_state_gen(f, random_sample)
-                    break
-
-                xarr.append(np.concatenate((x1ret, x2ret)))
-                yarr.append(yret)
-                i += 1
-
-            if len(xarr) == 0:
+            if board_state == 'over':
+                print('finished {0} states, this batch only has {1}/{2} states'.format(last_move_index+1, i, batch_size))
+                state_gen = random_state_gen(f, random_sample)
                 continue
-            yield xarr, yarr
+            yield board_state
 
 
 
