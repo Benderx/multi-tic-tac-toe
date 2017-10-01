@@ -5,12 +5,16 @@ import h5py
 import random
 import numpy as np
 import math
+from threading import Timer
+import time
+
 
 # Parameters
 learning_rate = 0.001
 training_epochs = 15
 batch_size = 3
 display_step = 1
+
 
 # Network Parameters
 n_hidden_1 = 512 # 1st layer number of features
@@ -41,9 +45,11 @@ def multilayer_perceptron(x, weights, biases):
 # Store layers weight & bias
 # initialized via http://cs231n.github.io/neural-networks-2/
 
-h1_weight = np.random.randn(n_input, n_hidden_1) / math.sqrt(2.0/(n_input))
-h2_weight = np.random.randn(n_hidden_1, n_hidden_2) / math.sqrt(2.0/(n_hidden_1))
-out_weight = np.random.randn(n_hidden_2, n_classes) / math.sqrt(2.0/(n_hidden_2))
+# print(math.sqrt(2.0/(n_input)))
+# exit()
+h1_weight = np.random.randn(n_input, n_hidden_1) * math.sqrt(2.0/(n_input))
+h2_weight = np.random.randn(n_hidden_1, n_hidden_2) * math.sqrt(2.0/(n_hidden_1))
+out_weight = np.random.randn(n_hidden_2, n_classes) * math.sqrt(2.0/(n_hidden_2))
 
 
 weights = {
@@ -142,8 +148,26 @@ def get_batch(batch_size):
 
 
 
+all_models_path = os.path.join('models', '{0}'.format('policy_net_v2'))
+models = os.listdir(all_models_path)
+model_num = str(len(models))
+print(model_num)
+model_path = os.path.join(all_models_path, '{0}'.format(str(model_num)))
 
 
+time_seconds = 180
+global lmao; lmao = True
+def training_time_up():
+    global lmao;
+    print('Training period over for: {0}'.format(model_path))
+    print('Training ran for {0} seconds'.format(time_seconds))
+    lmao = False
+    exit()
+
+
+# duration is in seconds
+t = Timer(time_seconds, training_time_up)
+t.start()
 
 
 # Launch the graph
@@ -151,29 +175,45 @@ with tf.Session() as sess:
     sess.run(init)
 
     batch_gen = get_batch(batch_size)
-
     # Training cycle
     for epoch in range(training_epochs):
-        avg_cost = 0.
-        batches = 40000
+        avg_sum = 0.
+        avg_num = 0
+        batches = 4000000
 
         # Loop over all batches
         for i in range(batches):
             batch_x, batch_y = next(batch_gen)
 
+            # print('\n, STARTING NEW \n')
             # Run optimization op (backprop) and cost op (to get loss value)
-            _, c = sess.run([optimizer, cost], feed_dict={x: batch_x,
+            op, c = sess.run([optimizer, cost], feed_dict={x: batch_x,
                                                           y: batch_y})
             # Compute average loss
-            avg_cost += c / batches
+            # print('ok')
+            # print(pred)
+            # print('lol')
+            # print(c)
+
+            avg_sum += c
+            avg_num += 1
+            if not lmao:
+                break
+        if not lmao:
+            break
 
         # Display logs per epoch step
         if epoch % display_step == 0:
             print("Epoch:", '%04d' % (epoch+1), "cost=", \
-                "{:.9f}".format(avg_cost))
+                "{:.9f}".format(avg_sum / avg_num))
+
+    print("final cost=", "{:.9f}".format(avg_sum / avg_num))
     print("Optimization Finished!")
 
-    save_path = os.path.join('models', 'policy_net_v1')
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
+
+    save_path = os.path.join(model_path, 'ITSYABOI')
     saver.save(sess, save_path)
     print("Model saved in file: {0}".format(save_path))
 
