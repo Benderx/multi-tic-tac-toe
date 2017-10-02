@@ -10,6 +10,10 @@ class Player:
         self.print_mode = print_mode
 
 
+    def announce_title(self):
+        return
+
+
     def print_turn(self):
         if self.print_mode == 0:
             return
@@ -44,6 +48,10 @@ class Human(Player):
             return b
 
 
+    def announce_title(self):
+        print("I AM PLAYER {0} and I AM HUMAN!".format(self.sym))
+
+
 class Random(Player):
     def __init__(self, n, s, e, print_mode):
         super().__init__(n, s, e, print_mode)
@@ -53,17 +61,29 @@ class Random(Player):
         return moves[random.randint(0, len(moves)-1)]
 
 
+    def announce_title(self):
+        print("I AM PLAYER {0} and I AM RANDOM!".format(self.sym))
+
+
 class Network(Player):
     def __init__(self, n, s, e, print_mode, model='policy_net_v2', iteration = float('inf')):
         super().__init__(n, s, e, print_mode)
 
-        model_path = os.path.join('models', model)
+        base_model_path = os.path.join('models', model)
+
+        models = os.listdir(base_model_path)
+        last_iter = len(models) - 1
+
         if iteration == float('inf'):
-            models = os.listdir(model_path)
-            last_iter = len(models) - 1
-            model_path = os.path.join(model_path, str(last_iter))
+            self.iteration_num = last_iter
+            model_path = os.path.join(base_model_path, str(last_iter))
+        elif iteration == 'all':
+            old_model_iter = str(random.randint(0, last_iter-1))
+            self.iteration_num = old_model_iter
+            model_path = os.path.join(base_model_path, old_model_iter)
         else:
-            model_path = os.path.join(model_path, iteration)
+            self.iteration_num = str(iteration)
+            model_path = os.path.join(base_model_path, iteration)
 
         save_meta_path = os.path.join(model_path, 'ITSYABOI.meta')
         save_ckpt_path = os.path.join(model_path, 'ITSYABOI')
@@ -89,3 +109,7 @@ class Network(Player):
         for i in pairing:
             if i[1] in moves:
                 return i[1]
+
+
+    def announce_title(self):
+        print("I AM PLAYER {0} and I AM NEURAL NETWORK ITERATION {1}".format(self.sym, self.iteration_num))

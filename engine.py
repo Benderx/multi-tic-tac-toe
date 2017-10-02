@@ -12,8 +12,8 @@ class Engine:
             self.init_board(start_state)
 
 
-    def init_board(start_state):
-        for i in range(len(board)):
+    def init_board(self, start_state):
+        for i in range(len(start_state)):
             self.board[i] = start_state[i]
 
 
